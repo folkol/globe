@@ -1,5 +1,5 @@
 var cubeRotation = 0.0;
-var speed = 0.1;
+var speed = 0.05;
 
 main();
 
@@ -71,9 +71,10 @@ function main() {
     };
 
     const buffers = initBuffers(gl);
-    const texture = loadTexture(gl, 'earthspec1k.jpg');
+    const texture = loadTexture(gl, 'landwater.png');
 
     var then = 0;
+
     function render(now) {
         now *= 0.001; // convert to seconds
         const deltaTime = now - then;
@@ -85,94 +86,67 @@ function main() {
 }
 
 function initBuffers(gl) {
+    var latitudeBands = 30;
+    var longitudeBands = 30;
+    var radius = 2.5;
+    var positions = [];
+    var normals = [];
+    var coordinates = [];
+    for (var latNumber = 0; latNumber <= latitudeBands; latNumber++) {
+        var theta = latNumber * Math.PI / latitudeBands;
+        var sinTheta = Math.sin(theta);
+        var cosTheta = Math.cos(theta);
+
+        for (var longNumber = 0; longNumber <= longitudeBands; longNumber++) {
+            var phi = longNumber * 2 * Math.PI / longitudeBands;
+            var sinPhi = Math.sin(phi);
+            var cosPhi = Math.cos(phi);
+
+            var x = cosPhi * sinTheta;
+            var y = cosTheta;
+            var z = sinPhi * sinTheta;
+            var u = 1 - (longNumber / longitudeBands);
+            var v = (latNumber / latitudeBands);
+
+            normals.push(x);
+            normals.push(y);
+            normals.push(z);
+            coordinates.push(u);
+            coordinates.push(v);
+            positions.push(radius * x);
+            positions.push(radius * y);
+            positions.push(radius * z);
+        }
+    }
+    var indices = [];
+    for (var latNumber = 0; latNumber < latitudeBands; latNumber++) {
+        for (var longNumber = 0; longNumber < longitudeBands; longNumber++) {
+            var first = (latNumber * (longitudeBands + 1)) + longNumber;
+            var second = first + longitudeBands + 1;
+            indices.push(first);
+            indices.push(second);
+            indices.push(first + 1);
+
+            indices.push(second);
+            indices.push(second + 1);
+            indices.push(first + 1);
+        }
+    }
+
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    const positions = [
-        // Front face
-        -1.0, -1.0, 1.0,
-        1.0, -1.0, 1.0,
-        1.0, 1.0, 1.0, -1.0, 1.0, 1.0
-
-        // // Back face
-        // -1.0, -1.0, -1.0, -1.0, 1.0, -1.0,
-        // 1.0, 1.0, -1.0,
-        // 1.0, -1.0, -1.0,
-
-        // // Top face
-        // -1.0, 1.0, -1.0, -1.0, 1.0, 1.0,
-        // 1.0, 1.0, 1.0,
-        // 1.0, 1.0, -1.0,
-
-        // // Bottom face
-        // -1.0, -1.0, -1.0,
-        // 1.0, -1.0, -1.0,
-        // 1.0, -1.0, 1.0, -1.0, -1.0, 1.0,
-
-        // // Right face
-        // 1.0, -1.0, -1.0,
-        // 1.0, 1.0, -1.0,
-        // 1.0, 1.0, 1.0,
-        // 1.0, -1.0, 1.0,
-
-        // // Left face
-        // -1.0, -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0,
-    ];
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
     const normalBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-    const vertexNormals = [
-        // Front
-        0.0, 0.0, 1.0,
-        0.0, 0.0, 1.0,
-        0.0, 0.0, 1.0,
-        0.0, 0.0, 1.0,
-
-        // Back
-        0.0, 0.0, -1.0,
-        0.0, 0.0, -1.0,
-        0.0, 0.0, -1.0,
-        0.0, 0.0, -1.0,
-
-        // Top
-        0.0, 1.0, 0.0,
-        0.0, 1.0, 0.0,
-        0.0, 1.0, 0.0,
-        0.0, 1.0, 0.0,
-
-        // Bottom
-        0.0, -1.0, 0.0,
-        0.0, -1.0, 0.0,
-        0.0, -1.0, 0.0,
-        0.0, -1.0, 0.0,
-
-        // Right
-        1.0, 0.0, 0.0,
-        1.0, 0.0, 0.0,
-        1.0, 0.0, 0.0,
-        1.0, 0.0, 0.0,
-
-        // Left
-        -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0
-    ];
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
 
     const textureCoordBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
-    const textureCoordinates = [
-        // Front
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0,
-    ];
 
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coordinates), gl.STATIC_DRAW);
     const indexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    const indices = [
-        0, 1, 2, 0, 2, 3
-    ];
 
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
     return {
@@ -194,7 +168,7 @@ function loadTexture(gl, url) {
     const border = 0;
     const srcFormat = gl.RGBA;
     const srcType = gl.UNSIGNED_BYTE;
-    const pixel = new Uint8Array([0, 0, 255, 255]); // opaque blue
+    const pixel = new Uint8Array([0, 0, 0, 255]);
     gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
         width, height, border, srcFormat, srcType,
         pixel);
@@ -223,7 +197,7 @@ function isPowerOf2(value) {
 }
 
 function drawScene(gl, programInfo, buffers, texture, deltaTime) {
-    gl.clearColor(0.0, 0.0, 0.0, 1.0); // Clear to black, fully opaque
+    gl.clearColor(0.1, 0.1, 0.1, 1.0);
     gl.clearDepth(1.0); // Clear everything
     gl.enable(gl.DEPTH_TEST); // Enable depth testing
     gl.depthFunc(gl.LEQUAL); // Near things obscure far things
@@ -343,7 +317,7 @@ function drawScene(gl, programInfo, buffers, texture, deltaTime) {
     gl.uniform1i(programInfo.uniformLocations.uSampler, 0);
 
     {
-        const vertexCount = 6;
+        const vertexCount = 5400;
         const type = gl.UNSIGNED_SHORT;
         const offset = 0;
         gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
