@@ -1,3 +1,13 @@
 # Globe
 
 Visualization of spatiotemporal data by plotting stuff on the face of a globe.
+
+## References
+
+https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Getting_started_with_WebGL
+http://planetpixelemporium.com/earth.html
+https://webglfundamentals.org/webgl/lessons/webgl-drawing-multiple-things.html
+http://glmatrix.net
+http://duriansoftware.com/joe/An-intro-to-modern-OpenGL.-Table-of-Contents.html
+https://webglfundamentals.org
+
